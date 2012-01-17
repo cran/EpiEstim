@@ -1,0 +1,17 @@
+4e441cc604156c26c12d5d0ee75442e6 *DESCRIPTION
+9fdfeb11f7ddba6f3aab9aaa6b1ac5dd *NAMESPACE
+c731db89197a5cabfd06db41db4d578b *R/EstimationR.R
+42cf1cddd4c3b42140d01661bc95e2c6 *data/Flu1918.RData
+8150e4c17448a65fbff86f2dd075c54e *data/Flu2009.RData
+b1d076702fb7164fac6d2e6b76db3098 *data/Measles1861.RData
+4ce34f36345d58e3b467496df4021c2d *data/SARS2003.RData
+458fd67d20b0fdb3fb66e1436cab3783 *data/Smallpox1972.RData
+ce3fcb42f815fbcce9d41df968e4330b *man/DiscrSI.Rd
+6d42cbe9f64d30585c649c5f234fa7da *man/EpiEstim-package.Rd
+3a52cdec8ab028254ad8cfaeff3e14a1 *man/EstimateR.Rd
+3680e5007fde1d74b5b12dc619848b3e *man/Flu1918.Rd
+a5041b512b0f2af8e9dc925b6cb43502 *man/Flu2009.Rd
+c7c2a8d57d3e1e2bdeefe605a0c8fa56 *man/Measles1861.Rd
+cc3a6143bc046e959a2cd27540d715fd *man/OverallInfectivity.Rd
+181a78716faba1d644d793b2e90ca541 *man/SARS2003.Rd
+19c515e118c5ab0ae98211b307b769b1 *man/Smallpox1972.Rd
