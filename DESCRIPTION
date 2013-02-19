@@ -1,5 +1,5 @@
 Package: EpiEstim
-Version: 1.1-0
+Version: 1.1-1
 Date: 2013/02/19
 Title: EpiEstim: a package to estimate time varying reproduction
         numbers from epidemic curves.
@@ -10,7 +10,7 @@ Description: This package provides tools to quantify transmissibility
         incidence.
 License: GPL (>= 2)
 LazyLoad: yes
-Packaged: 2013-02-19 13:55:42 UTC; annecori
+Packaged: 2013-03-01 11:37:27 UTC; annecori
 NeedsCompilation: no
 Repository: CRAN
-Date/Publication: 2013-02-19 16:08:25
+Date/Publication: 2013-03-01 12:58:06

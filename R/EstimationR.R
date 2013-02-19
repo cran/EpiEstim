@@ -424,8 +424,8 @@ EstimateR<-function(I,T.Start,T.End,method=c("NonParametricSI","ParametricSI","U
 		FinalStd.SI<-sqrt(sum(SI.Distr*(0:(length(SI.Distr)-1))^2)-FinalMean.SI^2)
 		
 		post <- PosteriorFromSIDistr(I,SI.Distr,a.Prior,b.Prior,T.Start,T.End)	
-		a.Posterior <- post[[1]]
-		b.Posterior <- post[[2]]
+		a.Posterior <- unlist(post[[1]])
+		b.Posterior <- unlist(post[[2]])
 
 		Mean.Posterior <- a.Posterior*b.Posterior
 		Std.Posterior <- sqrt(a.Posterior)*b.Posterior
