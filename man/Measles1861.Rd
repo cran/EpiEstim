@@ -26,11 +26,11 @@
 		## load data on measles in Hallegoch in 1861
 		data("Measles1861")
 
-		## estimate the reproduction number (method "NonParametricSI")
+		## estimate the instantaneous reproduction number (method "NonParametricSI")
 		EstimateR(Measles1861$Incidence, T.Start=17:42, T.End=23:48, method="NonParametricSI", 
 			SI.Distr=Measles1861$SI.Distr, plot=TRUE, leg.pos=xy.coords(1,7))
 		# the second plot produced shows, at each each day, 
-		# the estimate of the reproduction number over the 7-day window finishing on that day.
+		# the estimate of the instantaneous reproduction number over the 7-day window finishing on that day.
 
 	}
      \keyword{datasets}

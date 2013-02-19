@@ -2,9 +2,9 @@
 
 \name{EstimateR}
 \alias{EstimateR}
-\title{Estimated Reproduction Number}
+\title{Estimation of the instantaneous reproduction number}
 \description{
-  \code{EstimateR} estimates the reproduction number of an epidemic, given the incidence time series and the serial interval distribution. 
+  \code{EstimateR} estimates the instantaneous reproduction number of an epidemic, given the incidence time series and the serial interval distribution. 
 }
 \usage{
 EstimateR(I, T.Start, T.End, 
@@ -47,13 +47,12 @@ EstimateR(I, T.Start, T.End,
 		for method "ParametricSI", the discrete serial interval distribution;
 		for method "UncertainSI", the means and standard deviations of the serial interval sampled to account for uncertainty on the serial interval distribution (see details).}
 }
-\seealso{\code{\link{OverallInfectivity}}, \code{\link{DiscrSI}}
-}
+\seealso{\code{\link{OverallInfectivity}}, \code{\link{DiscrSI}}, \code{\link{WT}}}
 \references{
-  Cori, A. et al. A new tool to estimate time-varying reproduction numbers during epidemics. (submitted) 
+  Cori, A. et al. A new framework and software to estimate time-varying reproduction numbers during epidemics. (submitted) 
 }
 \details{
-  Analytical estimates of the reproduction number for an epidemic over predefined time windows can be obtained within a Bayesian framework, 
+  Analytical estimates of the instantaneous reproduction number for an epidemic over predefined time windows can be obtained within a Bayesian framework, 
   for a given discrete distribution of the serial interval (see references). 
   
   The more incident cases are observed over a time window, the smallest the posterior coefficient of variation (CV, ratio of standard deviation over mean) of the reproduction number. 
@@ -103,25 +102,25 @@ EstimateR(I, T.Start, T.End,
 ## load data on pandemic flu in a school in 2009
 data("Flu2009")
 
-## estimate the reproduction number (method "NonParametricSI")
+## estimate the instantaneous reproduction number (method "NonParametricSI")
 EstimateR(Flu2009$Incidence, T.Start=2:26, T.End=8:32, method="NonParametricSI", 
     SI.Distr=Flu2009$SI.Distr, plot=TRUE, leg.pos=xy.coords(1,3))
 # the second plot produced shows, at each each day, 
-# the estimate of the reproduction number over the 7-day window finishing on that day.
+# the estimate of the instantaneous reproduction number over the 7-day window finishing on that day.
 
-## estimate the reproduction number (method "ParametricSI")
+## estimate the instantaneous reproduction number (method "ParametricSI")
 EstimateR(Flu2009$Incidence, T.Start=2:26, T.End=8:32, method="ParametricSI", 
     Mean.SI=2.6, Std.SI=1.5, plot=TRUE)
 # the second plot produced shows, at each each day, 
-# the estimate of the reproduction number over the 7-day window finishing on that day.
+# the estimate of the instantaneous reproduction number over the 7-day window finishing on that day.
 
-## estimate the reproduction number (method "UncertainSI")
+## estimate the instantaneous reproduction number (method "UncertainSI")
 EstimateR(Flu2009$Incidence, T.Start=2:26, T.End=8:32, method="UncertainSI", 
     Mean.SI=2.6, Std.Mean.SI=1, Min.Mean.SI=1, Max.Mean.SI=4.2, 
     Std.SI=1.5, Std.Std.SI=0.5, Min.Std.SI=0.5, Max.Std.SI=2.5, 
     n1=100, n2=100, plot=TRUE)
 # the bottom left plot produced shows, at each each day, 
-# the estimate of the reproduction number over the 7-day window finishing on that day.
+# the estimate of the instantaneous reproduction number over the 7-day window finishing on that day.
 
 }
 \keyword{distribution}

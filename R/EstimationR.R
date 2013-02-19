@@ -15,15 +15,15 @@ DiscrSI<-function(k,mu,sigma)
 	{
 		stop("sigma must be >=0.")
 	}
-	a=((mu-1)/sigma)^2
-	b=sigma^2/(mu-1)
+	a <- ((mu-1)/sigma)^2
+	b <- sigma^2/(mu-1)
 	CDFGamma<-function(k,a,b)
 	{
 		return(pgamma(k,shape=a,scale=b))
 	}
-	res<-k*CDFGamma(k,a,b)+(k-2)*CDFGamma(k-2,a,b)-2*(k-1)*CDFGamma(k-1,a,b)
-	res<-res+a*b*(2*CDFGamma(k-1,a+1,b)-CDFGamma(k-2,a+1,b)-CDFGamma(k,a+1,b))
-	res<-max(0,res)
+	res <- k*CDFGamma(k,a,b)+(k-2)*CDFGamma(k-2,a,b)-2*(k-1)*CDFGamma(k-1,a,b)
+	res <- res+a*b*(2*CDFGamma(k-1,a+1,b)-CDFGamma(k-2,a+1,b)-CDFGamma(k,a+1,b))
+	res <- max(0,res)
 	return(res)
 }
 
@@ -36,14 +36,14 @@ OverallInfectivity <-function (I,SI.Distr)
 {
 	if(is.vector(I)==FALSE)
 	{
-		stop("Incidence must be a vector.")
+		stop("I must be a vector.")
 	}
 	T<-length(I)
 	for(i in 1:T)
 	{
 		if(I[i]<0)
 		{
-			stop("Incidence must be a positive vector.")
+			stop("I must be a positive vector.")
 		}
 	}
 	if(is.vector(SI.Distr)==FALSE)
@@ -68,17 +68,13 @@ OverallInfectivity <-function (I,SI.Distr)
 	{
 		stop("SI.Distr must sum to 1.")
 	}
-	lambda <- vector()
-	lambda[1]<-NA
-	for (t in 2:length(I))
-	{	
-		lambda[t] <- sum(SI.Distr[1:t]*I[t:1],na.rm=TRUE)
-	}
+	lambda <- vector() 
+	lambda[2:length(I)] <- sapply(2:length(I), function(t) sum(SI.Distr[1:t]*I[t:1],na.rm=TRUE)) 
 	return(lambda)
 }
 
 #########################################################
-# Main function                                         #
+# Main functions                                        #
 #########################################################
 
 EstimateR<-function(I,T.Start,T.End,method=c("NonParametricSI","ParametricSI","UncertainSI"),n1=NULL,n2=NULL,Mean.SI=NULL,Std.SI=NULL,Std.Mean.SI=NULL,Min.Mean.SI=NULL,Max.Mean.SI=NULL,Std.Std.SI=NULL,Min.Std.SI=NULL,Max.Std.SI=NULL,SI.Distr=NULL,Mean.Prior=5,Std.Prior=5,CV.Posterior=0.3,plot=FALSE,leg.pos="topright")
@@ -91,12 +87,8 @@ EstimateR<-function(I,T.Start,T.End,method=c("NonParametricSI","ParametricSI","U
 
 	CalculIncidencePerTimeStep <-function (I,T.Start,T.End)
 	{
-		NbTimePeriods<-length(T.Start)
-		IncidencePerTimeStep<-vector()
-		for(i in 1:NbTimePeriods)
-		{
-			IncidencePerTimeStep[i]<-sum(I[T.Start[i]:T.End[i]])
-		}
+		NbTimePeriods <- length(T.Start)
+		IncidencePerTimeStep <- sapply(1:NbTimePeriods, function(i) sum(I[T.Start[i]:T.End[i]]))
 		return(IncidencePerTimeStep)
 	}
 	
@@ -113,15 +105,9 @@ EstimateR<-function(I,T.Start,T.End,method=c("NonParametricSI","ParametricSI","U
 
 		a.Posterior<-vector()
 		b.Posterior<-vector()
-
-		for(t in 1:(NbTimePeriods))
-		{	
-			if(T.End[t]>FinalMean.SI)
-			{
-				a.Posterior[T.End[t]] <- a.Prior + sum(I[T.Start[t]:T.End[t]])
-				b.Posterior[T.End[t]] <- 1 / ( 1/b.Prior + sum(lambda[T.Start[t]:T.End[t]]) )
-			}
-		}
+		a.Posterior[T.End] <- sapply(1:(NbTimePeriods), function(t) if(T.End[t]>FinalMean.SI){a.Prior + sum(I[T.Start[t]:T.End[t]])})
+		b.Posterior[T.End] <- sapply(1:(NbTimePeriods), function(t) if(T.End[t]>FinalMean.SI){1 / ( 1/b.Prior + sum(lambda[T.Start[t]:T.End[t]]) )})
+		
 		return(list(a.Posterior,b.Posterior))
 	}
 	
@@ -134,28 +120,18 @@ EstimateR<-function(I,T.Start,T.End,method=c("NonParametricSI","ParametricSI","U
 	{
 		NbTimePeriods<-length(T.Start)
 		
-		SI.Distr <- vector()
-		for(t in 1:T)
-		{
-			SI.Distr[t] <- DiscrSI(t-1,Mean.SI,Std.SI)
-		}
-		FinalMean.SI<-sum(SI.Distr*(0:(length(SI.Distr)-1)))
+		SI.Distr <- sapply(1:T, function(t) DiscrSI(t-1,Mean.SI,Std.SI))
+		FinalMean.SI <- sum(SI.Distr*(0:(length(SI.Distr)-1)))
 		lambda <- OverallInfectivity(I,SI.Distr)
 
-		SampleR.Posterior<-matrix(NA,SampleSize,T)
-
-		a.Posterior<-vector()
-		b.Posterior<-vector()
-
-		for(t in 1:NbTimePeriods)
-		{
-			if(T.End[t]>FinalMean.SI)
-			{
-				a.Posterior[T.End[t]] <- a.Prior + sum(I[T.Start[t]:T.End[t]])
-				b.Posterior[T.End[t]] <- 1 / ( 1/b.Prior + sum(lambda[T.Start[t]:T.End[t]]) )
-				SampleR.Posterior[,T.End[t]]<-rgamma(SampleSize,shape=a.Posterior[T.End[t]], scale = b.Posterior[T.End[t]])
-			}
-		}
+		a.Posterior <- vector()
+		b.Posterior <- vector()
+		a.Posterior[T.End] <- sapply(1:(NbTimePeriods), function(t) if(T.End[t]>FinalMean.SI){a.Prior + sum(I[T.Start[t]:T.End[t]])})
+		b.Posterior[T.End] <- sapply(1:(NbTimePeriods), function(t) if(T.End[t]>FinalMean.SI){1 / ( 1/b.Prior + sum(lambda[T.Start[t]:T.End[t]]) )})
+		
+		SampleR.Posterior<-matrix(NA,SampleSize,T)	
+		SampleR.Posterior[,T.End] <- sapply(1:(NbTimePeriods), function(t) if(T.End[t]>FinalMean.SI){rgamma(SampleSize,shape=a.Posterior[T.End[t]], scale = b.Posterior[T.End[t]])})
+		
 		return(list(SampleR.Posterior,SI.Distr))
 	}
 		
@@ -165,14 +141,14 @@ EstimateR<-function(I,T.Start,T.End,method=c("NonParametricSI","ParametricSI","U
 
 	if(is.vector(I)==FALSE)
 	{
-		stop("Incidence must be a vector.")
+		stop("I must be a vector.")
 	}
 	T<-length(I)
 	for(i in 1:T)
 	{
 		if(I[i]<0)
 		{
-			stop("Incidence must be a positive vector.")
+			stop("I must be a positive vector.")
 		}
 	}
 
@@ -215,10 +191,6 @@ EstimateR<-function(I,T.Start,T.End,method=c("NonParametricSI","ParametricSI","U
 			stop("T.End must be a vector of >0 integers.")
 		}
 	}
-	#if(method!="NonParametricSI" && method !="ParametricSI" && method!="UncertainSI")
-	#{
-	#	stop("The method argument must be one of NonParametricSI, ParametricSI, or UncertainSI.")
-	#}
 
 	if(method=="NonParametricSI")
 	{
@@ -422,15 +394,12 @@ EstimateR<-function(I,T.Start,T.End,method=c("NonParametricSI","ParametricSI","U
 		   	}
 		}
 
+		temp <- lapply(1:n1, function(k) SampleFromPosterior(n2,I,Mean.SI.sample[k],Std.SI.sample[k],a.Prior,b.Prior,T.Start,T.End))
+		SI.Distr <- cbind(t(sapply(1:n1, function(k) (temp[[k]])[[2]])),rep(0,n1))
 		Rsample<-matrix(NA,n2*n1,T)
-		SI.Distr<-matrix(NA,n1,T+1)
-	
 		for (k in 1:n1)
 		{
-			#print(k)
-			prov<-SampleFromPosterior(n2,I,Mean.SI.sample[k],Std.SI.sample[k],a.Prior,b.Prior,T.Start,T.End)
-			Rsample[((k-1)*n2+1):(k*n2),ceiling(Mean.SI.sample[k]):T]<-prov[[1]][,ceiling(Mean.SI.sample[k]):T]
-			SI.Distr[k,1:T]<-prov[[2]]
+			Rsample[((k-1)*n2+1):(k*n2),ceiling(Mean.SI.sample[k]):T] <- (temp[[k]])[[1]][,ceiling(Mean.SI.sample[k]):T]
 		}
 	
 		Mean.Posterior <- apply(Rsample,2,mean,na.rm=TRUE)
@@ -448,19 +417,15 @@ EstimateR<-function(I,T.Start,T.End,method=c("NonParametricSI","ParametricSI","U
 	{
 		if(ParametricSI=="Y")
 		{
-			SI.Distr <- vector()
-			for(t in 1:T)
-			{
-				SI.Distr[t] <- DiscrSI(t-1,Mean.SI,Std.SI)
-			}
+			SI.Distr <- sapply(1:T, function(t) DiscrSI(t-1,Mean.SI,Std.SI))
 		}
 		if(length(SI.Distr)<T+1){SI.Distr[(length(SI.Distr)+1):(T+1)]<-0}
 		FinalMean.SI<-sum(SI.Distr*(0:(length(SI.Distr)-1)))
 		FinalStd.SI<-sqrt(sum(SI.Distr*(0:(length(SI.Distr)-1))^2)-FinalMean.SI^2)
 		
-		post<-PosteriorFromSIDistr(I,SI.Distr,a.Prior,b.Prior,T.Start,T.End)	
-		a.Posterior<-post[[1]]
-		b.Posterior<-post[[2]]
+		post <- PosteriorFromSIDistr(I,SI.Distr,a.Prior,b.Prior,T.Start,T.End)	
+		a.Posterior <- post[[1]]
+		b.Posterior <- post[[2]]
 
 		Mean.Posterior <- a.Posterior*b.Posterior
 		Std.Posterior <- sqrt(a.Posterior)*b.Posterior
@@ -481,7 +446,6 @@ EstimateR<-function(I,T.Start,T.End,method=c("NonParametricSI","ParametricSI","U
 	results$R<-as.data.frame(cbind(T.Start,T.End,Mean.Posterior[T.End],Std.Posterior[T.End],Quantile.0.025.Posterior[T.End],Quantile.0.05.Posterior[T.End],Quantile.0.25.Posterior[T.End],Median.Posterior[T.End],Quantile.0.75.Posterior[T.End],Quantile.0.95.Posterior[T.End],Quantile.0.975.Posterior[T.End]))
 	names(results$R)<-c("T.Start","T.End","Mean(R)","Std(R)","Quantile.0.025(R)","Quantile.0.05(R)","Quantile.0.25(R)","Median(R)","Quantile.0.75(R)","Quantile.0.95(R)","Quantile.0.975(R)")
 	
-
 	if(SIUncertainty=="Y") # method "UncertainSI"
 	{
 		results$SIDistr<-as.data.frame(cbind(Mean.SI.sample,Std.SI.sample))
@@ -489,7 +453,14 @@ EstimateR<-function(I,T.Start,T.End,method=c("NonParametricSI","ParametricSI","U
 	{
 		if(ParametricSI=="Y") # method "ParametricSI"
 		{
-			MaxT<-min(which(abs(cumsum(SI.Distr)-1)<0.000001))
+			if(length(which(abs(cumsum(SI.Distr)-1)<0.01))==0)
+			{
+				warning("The serial interval distribution you have chosen is very wide compared to the duration of the epidemic.\nEstimation will be performed anyway but restults should be interpreted with care.")
+				MaxT <- length(cumsum(SI.Distr))
+			}else
+			{
+				MaxT<-min(which(abs(cumsum(SI.Distr)-1)<0.01))	
+			}
 			results$SIDistr<-as.data.frame(cbind(0:(MaxT-1),SI.Distr[1:MaxT]))
 			names(results$SIDistr)<-c("k","w[k]")
 		}else # method "NonParametricSI"
@@ -532,16 +503,7 @@ EstimateR<-function(I,T.Start,T.End,method=c("NonParametricSI","ParametricSI","U
 			lines(1:max(T.End),Median.Posterior)
 			lines(0:T,rep(1,T+1),lty=2)
 			legend(leg.pos,c("Median","95%CrI"),col=c("Black",grey),lwd=c(1,10),bty="n",cex=1.2)
-			if(method==1)
-			{
-				FinalMean.SI<-results$SIDistr[1,1]
-				FinalStd.SI<-results$SIDistr[1,2]
-			}
-			if(method==2)
-			{
-				FinalMean.SI<-sum(results$SIDistr[,1]*results$SIDistr[,2])
-				FinalStd.SI<-sqrt(sum(results$SIDistr[,1]^2*results$SIDistr[,2])-FinalMean.SI^2)
-			}
+			
 			plot(0:(length(SI.Distr)-1),SI.Distr,type="h",lwd=10,lend=1,bty="n",xlab="Time",ylab="Frequency",main="Serial interval distribution",xlim=c(0,FinalMean.SI+6*FinalStd.SI))
 		}
 
@@ -551,7 +513,279 @@ EstimateR<-function(I,T.Start,T.End,method=c("NonParametricSI","ParametricSI","U
 
 }
 	
+WT <- function(I,T.Start,T.End,method=c("NonParametricSI","ParametricSI"),Mean.SI=NULL,Std.SI=NULL,SI.Distr=NULL,nSim=10,plot=FALSE,leg.pos="topright")
+{
 	
+	### Functions ###
+	
+	#########################################################
+	# Draws a possile transmission tree                     #
+	#########################################################
+	
+	DrawOneSetOfAncestries <- function()
+	{
+		res <- vector()
+		for(t in T.Start[1]:T.End[length(T.End)])
+		{
+			if(length(which(Onset==t))>0)
+			{
+				if(length(possibleAncesTime[[t]])>0)
+				{
+					res[which(Onset==t)] <- possibleAncesTime[[t]][which(rmultinom(length(which(Onset==t)),size=1,prob=SI.Distr[t-possibleAncesTime[[t]]+1]*I[possibleAncesTime[[t]]])==TRUE,arr.ind=TRUE)[,1]]
+				}else
+					res[which(Onset==t)] <- NA
+			}
+		}
+		return(res)
+	}
+	
+	### Adjusting T.Start and T.End so that at least an incident case has been observed before T.Start[1] ###
+	
+	i <- 1
+	while(sum(I[1:(T.Start[i]-1)])==0)
+	{
+		i <- i+1
+	}
+	temp <- which(T.Start<i)
+	if(length(temp>0))
+	{
+		T.Start <- T.Start[-temp]
+		T.End <- T.End[-temp]
+	}
+	
+	### Error messages ###
+	
+	method <- match.arg(method)
+	
+	if(is.vector(I)==FALSE)
+	{
+		stop("I must be a vector.")
+	}
+	T<-length(I)
+	for(i in 1:T)
+	{
+		if(I[i]<0)
+		{
+			stop("I must be a positive vector.")
+		}
+	}
+	I[which(is.na(I))] <- 0
+	
+	if(is.vector(T.Start)==FALSE)
+	{
+		stop("T.Start must be a vector.")
+	}
+	if(is.vector(T.End)==FALSE)
+	{
+		stop("T.End must be a vector.")
+	}
+	if(length(T.Start)!=length(T.End))
+	{
+		stop("T.Start and T.End must have the same length.")
+	}
+	NbTimePeriods<-length(T.Start)
+	for(i in 1:NbTimePeriods)
+	{
+		if(T.Start[i]>T.End[i])
+		{
+			stop("T.Start[i] must be <= T.End[i] for all i.")
+		}
+		if(T.Start[i]<1 || T.Start[i]%%1!=0)
+		{
+			stop("T.Start must be a vector of >0 integers.")
+		}
+		if(T.End[i]<1 || T.End[i]%%1!=0)
+		{
+			stop("T.End must be a vector of >0 integers.")
+		}
+	}
+	
+	if(method=="NonParametricSI")
+	{
+		if(is.null(SI.Distr)==TRUE)
+		{
+			stop("method NonParametricSI requires to specify the SI.Distr argument.")
+		}
+		if(is.vector(SI.Distr)==FALSE)
+		{
+			stop("method NonParametricSI requires that SI.Distr must be a vector.")
+		}
+		if(SI.Distr[1]!=0)
+		{
+			stop("method NonParametricSI requires that SI.Distr[1] = 0.")
+		}
+		if(length(SI.Distr)>1)
+		{
+			for(i in 2:length(SI.Distr))
+			{
+				if(SI.Distr[i]<0)
+				{
+					stop("method NonParametricSI requires that SI.Distr must be a positive vector.")
+				}
+			}
+		}
+		if(abs(sum(SI.Distr)-1)>0.01)
+		{
+			stop("method NonParametricSI requires that SI.Distr must sum to 1.")
+		}
+		SI.Distr <- c(SI.Distr,0)
+	}
+	
+	if(method=="ParametricSI")
+	{
+		if(is.null(Mean.SI)==TRUE)
+		{
+			stop("method NonParametricSI requires to specify the Mean.SI argument.")
+		}
+		if(is.null(Std.SI)==TRUE)
+		{
+			stop("method NonParametricSI requires to specify the Std.SI argument.")
+		}
+		if(Mean.SI<1)
+		{
+			stop("method ParametricSI requires a value >1 for Mean.SI.")
+		}
+		if(Std.SI<0)
+		{
+			stop("method ParametricSI requires a >0 value for Std.SI.")
+		}
+	}
+	
+	if(plot!=TRUE && plot!=FALSE)
+	{
+		stop("plot must be TRUE or FALSE.")
+	}
+	
+	if(is.numeric(nSim)==FALSE)
+	{
+		stop("nSim must be a positive integer.")
+	}
+	if(nSim<=0)
+	{
+		stop("nSim must be a positive integer.")
+	}
+	
+	### What does each method do ###
+	
+	if(method=="NonParametricSI")
+	{
+		ParametricSI<-"N"
+	}
+	if(method=="ParametricSI")
+	{
+		ParametricSI<-"Y"
+	}
+	
+	if(ParametricSI=="Y")
+	{
+		SI.Distr <- sapply(1:T, function(t) DiscrSI(t-1,Mean.SI,Std.SI))
+	}
+	if(length(SI.Distr)<T+1){SI.Distr[(length(SI.Distr)+1):(T+1)]<-0}
+	FinalMean.SI<-sum(SI.Distr*(0:(length(SI.Distr)-1)))
+	FinalStd.SI<-sqrt(sum(SI.Distr*(0:(length(SI.Distr)-1))^2)-FinalMean.SI^2)
+	
+	TimePeriodsWithNoIncidence <- vector()
+	for(i in 1:NbTimePeriods)
+	{
+		if(sum(I[T.Start[i]:T.End[i]])==0)
+		{
+			TimePeriodsWithNoIncidence <- c(TimePeriodsWithNoIncidence,i)
+		}
+	}
+	if(length(TimePeriodsWithNoIncidence)>0)
+	{
+		T.Start <- T.Start[-TimePeriodsWithNoIncidence]
+		T.End <- T.End[-TimePeriodsWithNoIncidence]
+		NbTimePeriods <- length(T.Start)
+	}
+	
+	Onset <- vector()
+	index2=0
+	for(t in 1:T)
+	{
+		if(I[t]>0)
+		{
+			for(i in 1:I[t])
+			{
+				index2 <- index2+1
+				Onset[index2] <- t
+			}
+		}
+	}
+	
+	NbCases <- length(Onset)
+	
+	delay <- outer(Onset,Onset,"-")
+	
+	SIdelay <- apply(delay,2,function(x) SI.Distr[pmin(pmax(x+1,1),length(SI.Distr))])
+	
+	SumOnColSIDelay <- apply(SIdelay,1,sum,na.rm=TRUE)
+	MatSumOnColSIDelay <- matrix(rep(SumOnColSIDelay,NbCases),nrow=NbCases,ncol=NbCases)
+	
+	p <- SIdelay/(MatSumOnColSIDelay)
+	p[which(is.na(p))] <- 0
+	
+	MeanRperIndexCase <- apply(p,2,sum,na.rm=TRUE)
+	
+	MeanRperDate.WT <- sapply(1:NbTimePeriods, function(i) mean(MeanRperIndexCase[which((Onset>=T.Start[i]) * (Onset<=T.End[i])==1)]))
+	
+	possibleAncesTime <- sapply(1:T,function(t) (t-(which(SI.Distr!=0))+1)[which(t-(which(SI.Distr!=0))+1>0)]) 
+	ancestriesTime <- t(sapply(1:nSim , function(i) DrawOneSetOfAncestries()))	
+	
+	Rsim <- sapply(1:NbTimePeriods,function(i) rowSums((ancestriesTime[,]>=T.Start[i]) * (ancestriesTime[,]<=T.End[i]),na.rm=TRUE)/sum(I[T.Start[i]:T.End[i]]))
+	
+	R025.WT <- apply(Rsim, 2, quantile,0.025,na.rm=TRUE)
+	R025.WT <- R025.WT[which(!is.na(R025.WT))]
+	R975.WT <- apply(Rsim, 2, quantile,0.975,na.rm=TRUE)
+	R975.WT <- R975.WT[which(!is.na(R975.WT))]	
+	std.WT <- apply(Rsim, 2, sd,na.rm=TRUE)
+	std.WT <- std.WT[which(!is.na(std.WT))]	
+	
+	results<-list()
+	
+	results$R<-as.data.frame(cbind(T.Start,T.End,MeanRperDate.WT,std.WT,R025.WT,R975.WT))
+	names(results$R)<-c("T.Start","T.End","Mean(R)","Std(R)","Quantile.0.025(R)","Quantile.0.975(R)")
+	
+	if(ParametricSI=="Y") # method "ParametricSI"
+	{
+		if(length(which(abs(cumsum(SI.Distr)-1)<0.01))==0)
+		{
+			warning("The serial interval distribution you have chosen is very wide compared to the duration of the epidemic.\nEstimation will be performed anyway but restults should be interpreted with care.")
+			MaxT <- length(cumsum(SI.Distr))
+		}else
+		{
+			MaxT<-min(which(abs(cumsum(SI.Distr)-1)<0.01))	
+		}
+		results$SIDistr<-as.data.frame(cbind(0:(MaxT-1),SI.Distr[1:MaxT]))
+		names(results$SIDistr)<-c("k","w[k]")
+	}else # method "NonParametricSI"
+	{
+		results$SIDistr<-as.data.frame(cbind(FinalMean.SI,FinalStd.SI))
+		names(results$SIDistr)<-c("Mean Discrete SI","Std Discrete SI")
+	}
+	
+	if(plot==TRUE)
+	{
+		grey <- "#999999"
+		
+		par(mfrow=c(3,1),las=1,cex.main=1.8,cex.lab=1.5,cex.axis=1.2,mar=c(6,6,3,1),mgp=c(4,1,0))
+		plot(I,type="s",bty="n",xlab="Time",ylab="Incidence",main="Epidemic curve")		
+		plot(T.End,MeanRperDate.WT,type="p",bty="n",xlab="Time",ylab=expression(R^c),main=expression(paste("Estimated ",R^c,sep="")),ylim=c(0,max(R975.WT,na.rm=TRUE)),xlim=c(1,T),pch=20)
+		for(i in 1:length(T.End))
+		{
+			segments(T.End[i],R025.WT[i],T.End[i],R975.WT[i],col=grey)
+		}
+		points(T.End,MeanRperDate.WT,pch=20)
+		lines(0:T,rep(1,T+1),lty=2)
+		legend(leg.pos,c("Mean","95% CI"),col=c("Black",grey),lwd=c(0,1.5),pch=c(19,19),pt.cex=c(1,0),bty="n",cex=1.2)
+		
+		plot(0:(length(SI.Distr)-1),SI.Distr,type="h",lwd=10,lend=1,bty="n",xlab="Time",ylab="Frequency",main="Serial interval distribution",xlim=c(0,FinalMean.SI+6*FinalStd.SI))
+		
+	}
+	
+	return(results)
+	
+}
 
 
 

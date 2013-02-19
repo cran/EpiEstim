@@ -17,10 +17,9 @@ DiscrSI(k, mu, sigma)
 \value{
   \code{DiscrSI(k, mu, sigma)} gives the discrete probability \eqn{w_k} that the serial interval is equal to \eqn{k}.
 }
-\seealso{\code{\link{OverallInfectivity}}, \code{\link{EstimateR}}
-}
+\seealso{\code{\link{OverallInfectivity}}, \code{\link{EstimateR}}, \code{\link{WT}}}
 \references{
-  Cori, A. et al. A new tool to estimate time-varying reproduction numbers during epidemics. (submitted) 
+    Cori, A. et al. A new framework and software to estimate time-varying reproduction numbers during epidemics. (submitted) 
 }
 \details{
   Assuming that the serial interval is shifted Gamma distributed with mean \eqn{\mu}, standard deviation \eqn{\sigma} and shift \eqn{1}, 

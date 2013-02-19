@@ -6,16 +6,20 @@
 \title{The EpiEstim package}
 \description{
   Quantifying transmissibility during epidemics is essential to calibrate and adjust public health responses. 
-  Transmissibility can be measured by the reproduction number R, the average number of secondary cases caused by an infected individual. 
-  Several methods have been proposed to estimate R over the course of an epidemic. However, they are usually difficult to implement and often specific to a particular epidemic. 
-  In this package, we propose a ready-to-use tool for estimating R from the incidence time-series. 
+  Transmissibility at a certain time step can be measured by the instantaneous reproduction number R, the ratio of the number of new infections in this time step 
+  to the current infectivity due to previously infected cases. In this package, we propose a ready-to-use tool for estimating R from the incidence time-series. 
   This tool uses novel analytical estimates of R, and also incorporates uncertainty on the serial interval distribution. 
+  
+  We also propose an implementation of the method proposed by Wallinga and Teunis (AJE, 2004) to estimate a related, though different, quantity, the case reproduction number
+  (see Fraser, PLoS One, 2007 for the difference between the two). 
   
   The functions implemented in this package are:
   \itemize{
          \item \code{\link{DiscrSI}}, which computes the discrete distribution of the serial interval with a given mean and standard deviation;
          \item \code{\link{OverallInfectivity}}, which calculates, at each time step, the overall infectivity due to previously infected individuals;
-         \item \code{\link{EstimateR}}, which estimates, for each time step, the reproduction number, given the incidence time series and the serial interval distribution. 
+         \item \code{\link{EstimateR}}, which estimates, for each time step, the instantaneous reproduction number, given the incidence time series and the serial interval distribution.
+         \item \code{\link{WT}}, which estimates, for each time step, the case reproduction number, given the incidence time series and the serial interval distribution. 
+    
        }
   
   Together with the package a few datasets are provided that contain time series of incidence and serial interval distribution for the following epidemics:
@@ -29,7 +33,9 @@
   
 }
 \references{
-  Cori, A. et al. A new tool to estimate time-varying reproduction numbers during epidemics. (submitted) 
+    Cori, A. et al. A new framework and software to estimate time-varying reproduction numbers during epidemics. (submitted) 
+    Fraser, C. (2007) Estimating individual and household reproduction numbers in an emerging epidemic. PLoS One 2(1): e758.
+    Wallinga, J. and P. Teunis (2004). Different epidemic curves for severe acute respiratory syndrome reveal similar impacts of control measures. Am J Epidemiol 160(6): 509-516.
 }
 \details{
   Package: EpiEstim
