@@ -105,8 +105,8 @@ EstimateR<-function(I,T.Start,T.End,method=c("NonParametricSI","ParametricSI","U
 
 		a.Posterior<-vector()
 		b.Posterior<-vector()
-		a.Posterior[T.End] <- sapply(1:(NbTimePeriods), function(t) if(T.End[t]>FinalMean.SI){a.Prior + sum(I[T.Start[t]:T.End[t]])})
-		b.Posterior[T.End] <- sapply(1:(NbTimePeriods), function(t) if(T.End[t]>FinalMean.SI){1 / ( 1/b.Prior + sum(lambda[T.Start[t]:T.End[t]]) )})
+		a.Posterior <- lapply(1:(NbTimePeriods), function(t) if(T.End[t]>FinalMean.SI){a.Prior + sum(I[T.Start[t]:T.End[t]])}else{NA})
+		b.Posterior <- lapply(1:(NbTimePeriods), function(t) if(T.End[t]>FinalMean.SI){1 / ( 1/b.Prior + sum(lambda[T.Start[t]:T.End[t]]) )}else{NA})
 		
 		return(list(a.Posterior,b.Posterior))
 	}
@@ -115,7 +115,7 @@ EstimateR<-function(I,T.Start,T.End,method=c("NonParametricSI","ParametricSI","U
 	# Samples from the Gamma posterior distribution for a   #
 	# given mean SI and std SI                              #
 	#########################################################
-
+	
 	SampleFromPosterior <-function (SampleSize,I,Mean.SI,Std.SI,a.Prior,b.Prior,T.Start,T.End)
 	{
 		NbTimePeriods<-length(T.Start)
@@ -126,11 +126,10 @@ EstimateR<-function(I,T.Start,T.End,method=c("NonParametricSI","ParametricSI","U
 
 		a.Posterior <- vector()
 		b.Posterior <- vector()
-		a.Posterior[T.End] <- sapply(1:(NbTimePeriods), function(t) if(T.End[t]>FinalMean.SI){a.Prior + sum(I[T.Start[t]:T.End[t]])})
-		b.Posterior[T.End] <- sapply(1:(NbTimePeriods), function(t) if(T.End[t]>FinalMean.SI){1 / ( 1/b.Prior + sum(lambda[T.Start[t]:T.End[t]]) )})
-		
-		SampleR.Posterior<-matrix(NA,SampleSize,T)	
-		SampleR.Posterior[,T.End] <- sapply(1:(NbTimePeriods), function(t) if(T.End[t]>FinalMean.SI){rgamma(SampleSize,shape=a.Posterior[T.End[t]], scale = b.Posterior[T.End[t]])})
+		a.Posterior <- sapply(1:(NbTimePeriods), function(t) if(T.End[t]>FinalMean.SI){a.Prior + sum(I[T.Start[t]:T.End[t]])}else{NA})
+		b.Posterior <- sapply(1:(NbTimePeriods), function(t) if(T.End[t]>FinalMean.SI){1 / ( 1/b.Prior + sum(lambda[T.Start[t]:T.End[t]],na.rm=TRUE) )}else{NA})
+
+		SampleR.Posterior <- sapply(1:(NbTimePeriods), function(t) if(!is.na(a.Posterior[t])){rgamma(SampleSize,shape=unlist(a.Posterior[t]), scale = unlist(b.Posterior[t]))}else{rep(NA,SampleSize)})
 		
 		return(list(SampleR.Posterior,SI.Distr))
 	}
@@ -316,7 +315,7 @@ EstimateR<-function(I,T.Start,T.End,method=c("NonParametricSI","ParametricSI","U
 		{
 			stop("method UncertainSI requires that Mean.SI >= Min.Mean.SI.")
 		}
-		if(Max.Mean.SI-Mean.SI!=Mean.SI-Min.Mean.SI)
+		if(signif(Max.Mean.SI-Mean.SI,3)!=signif(Mean.SI-Min.Mean.SI,3))
 		{
 			warning("The distribution you chose for the mean SI is not centered around the mean.")
 		}
@@ -336,7 +335,7 @@ EstimateR<-function(I,T.Start,T.End,method=c("NonParametricSI","ParametricSI","U
 		{
 			stop("method UncertainSI requires that Std.SI >= Min.Std.SI.")
 		}
-		if(Max.Std.SI-Std.SI!=Std.SI-Min.Std.SI)
+		if(signif(Max.Std.SI-Std.SI,3)!=signif(Std.SI-Min.Std.SI,3))
 		{
 			warning("The distribution you chose for the std of the SI is not centered around the mean.")
 		}
@@ -396,10 +395,10 @@ EstimateR<-function(I,T.Start,T.End,method=c("NonParametricSI","ParametricSI","U
 
 		temp <- lapply(1:n1, function(k) SampleFromPosterior(n2,I,Mean.SI.sample[k],Std.SI.sample[k],a.Prior,b.Prior,T.Start,T.End))
 		SI.Distr <- cbind(t(sapply(1:n1, function(k) (temp[[k]])[[2]])),rep(0,n1))
-		Rsample<-matrix(NA,n2*n1,T)
+		Rsample<-matrix(NA,n2*n1,NbTimePeriods)
 		for (k in 1:n1)
 		{
-			Rsample[((k-1)*n2+1):(k*n2),ceiling(Mean.SI.sample[k]):T] <- (temp[[k]])[[1]][,ceiling(Mean.SI.sample[k]):T]
+			Rsample[((k-1)*n2+1):(k*n2),which(T.End>Mean.SI.sample[k])] <- (temp[[k]])[[1]][,which(T.End>Mean.SI.sample[k])]
 		}
 	
 		Mean.Posterior <- apply(Rsample,2,mean,na.rm=TRUE)
@@ -443,7 +442,7 @@ EstimateR<-function(I,T.Start,T.End,method=c("NonParametricSI","ParametricSI","U
 	
 	results<-list()
 
-	results$R<-as.data.frame(cbind(T.Start,T.End,Mean.Posterior[T.End],Std.Posterior[T.End],Quantile.0.025.Posterior[T.End],Quantile.0.05.Posterior[T.End],Quantile.0.25.Posterior[T.End],Median.Posterior[T.End],Quantile.0.75.Posterior[T.End],Quantile.0.95.Posterior[T.End],Quantile.0.975.Posterior[T.End]))
+	results$R<-as.data.frame(cbind(T.Start,T.End,Mean.Posterior,Std.Posterior,Quantile.0.025.Posterior,Quantile.0.05.Posterior,Quantile.0.25.Posterior,Median.Posterior,Quantile.0.75.Posterior,Quantile.0.95.Posterior,Quantile.0.975.Posterior))
 	names(results$R)<-c("T.Start","T.End","Mean(R)","Std(R)","Quantile.0.025(R)","Quantile.0.05(R)","Quantile.0.25(R)","Median(R)","Quantile.0.75(R)","Quantile.0.95(R)","Quantile.0.975(R)")
 	
 	if(SIUncertainty=="Y") # method "UncertainSI"
@@ -479,11 +478,11 @@ EstimateR<-function(I,T.Start,T.End,method=c("NonParametricSI","ParametricSI","U
 			plot(I,type="s",bty="n",xlab="",ylab="",main="Epidemic curve")
 			title(xlab="Time",ylab="Incidence",line = 3)
 	
-			plot(Median.Posterior,type="l",bty="n",xlab="",ylab="",main="Estimated R",ylim=c(0,max(Quantile.0.975.Posterior,na.rm=TRUE)),xlim=c(1,T))
+			plot(T.End,Median.Posterior,type="l",bty="n",xlab="",ylab="",main="Estimated R",ylim=c(0,max(Quantile.0.975.Posterior,na.rm=TRUE)),xlim=c(1,T))
 			title(xlab="Time",ylab="R",line = 3)
 
-			polygon(c(T.End,rev(T.End)),c(Quantile.0.025.Posterior[T.End],rev(Quantile.0.975.Posterior[T.End])),col=grey,border=FALSE)
-			lines(Median.Posterior)
+			polygon(c(T.End,rev(T.End)),c(Quantile.0.025.Posterior,rev(Quantile.0.975.Posterior)),col=grey,border=FALSE)
+			lines(T.End,Median.Posterior)
 			lines(0:T,rep(1,T+1),lty=2)
 			legend(leg.pos,c("Median","95%CrI"),col=c("Black",grey),lwd=c(1,10),bty="n",cex=1.2)
 
@@ -497,10 +496,10 @@ EstimateR<-function(I,T.Start,T.End,method=c("NonParametricSI","ParametricSI","U
 			par(mfrow=c(3,1),las=1,cex.main=1.8,cex.lab=1.5,cex.axis=1.2,mar=c(6,6,3,1),mgp=c(4,1,0))
 			plot(I,type="s",bty="n",xlab="Time",ylab="Incidence",main="Epidemic curve")
 	
-			plot(1:max(T.End),Median.Posterior,type="l",bty="n",xlab="Time",ylab="R",main="Estimated R",ylim=c(0,max(Quantile.0.975.Posterior,na.rm=TRUE)),xlim=c(1,T))
+			plot(T.End,Median.Posterior,type="l",bty="n",xlab="Time",ylab="R",main="Estimated R",ylim=c(0,max(Quantile.0.975.Posterior,na.rm=TRUE)),xlim=c(1,T))
 	
-			polygon(c(1:max(T.End),rev(1:max(T.End))),c(Quantile.0.025.Posterior,rev(Quantile.0.975.Posterior)),col=grey,border=FALSE)
-			lines(1:max(T.End),Median.Posterior)
+			polygon(c(T.End,rev(T.End)),c(Quantile.0.025.Posterior,rev(Quantile.0.975.Posterior)),col=grey,border=FALSE)
+			lines(T.End,Median.Posterior)
 			lines(0:T,rep(1,T+1),lty=2)
 			legend(leg.pos,c("Median","95%CrI"),col=c("Black",grey),lwd=c(1,10),bty="n",cex=1.2)
 			
