@@ -1,3 +1,19 @@
+# EpiEstim 2.2-3
+
+## FIXED
+* Fixed bugs in draw_one_set_of_ancestries resulting from incorrect lengths and an undefined variable (issue #92) (#93, @jstockwin)
+* Fixed incorrect quantiles (issue #88) (#89, @jstockwin)
+
+# EpiEstim 2.2-2
+
+## MISC
+
+* Plotting no longer displays TableGrob output (#87, @zkamvar).
+
+# EpiEstim 2.2-1
+
+This release contains various spelling fixes for CRAN maintenance.
+
 # EpiEstim 2.2-0
 
 ## NEW FUNCTIONS
@@ -81,4 +97,3 @@
    argument)
  - `graphics`, `reshape2`, `ggplot2`, `gridExtra`, `scales`, `grDevices` (to
    make new plots of outputs of `estimate_R` and `wallinga_teunis` functions)
-

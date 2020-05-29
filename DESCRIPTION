@@ -1,5 +1,5 @@
 Package: EpiEstim
-Version: 2.2-1
+Version: 2.2-3
 Title: Estimate Time Varying Reproduction Numbers from Epidemic Curves
 Authors@R: c(person("Anne", "Cori", email = "a.cori@imperial.ac.uk", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-8443-9162")), 
   person("Simon", "Cauchemez", role = "ctb"),
@@ -28,10 +28,11 @@ Imports: coarseDataTools (>= 0.6-4), stats, graphics, reshape2,
 Suggests: testthat, utils, vdiffr, covr, knitr, rmarkdown
 License: GPL (>= 2)
 LazyLoad: yes
-RoxygenNote: 6.1.1
+Encoding: UTF-8
+RoxygenNote: 7.0.2
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2019-07-08 10:03:43 UTC; acori
+Packaged: 2020-05-28 16:30:03 UTC; acori
 Author: Anne Cori [aut, cre] (<https://orcid.org/0000-0002-8443-9162>),
   Simon Cauchemez [ctb],
   Neil M. Ferguson [ctb] (<https://orcid.org/0000-0002-1154-8093>),
@@ -47,4 +48,4 @@ Author: Anne Cori [aut, cre] (<https://orcid.org/0000-0002-8443-9162>),
   Robin Thompson [ctb] (<https://orcid.org/0000-0001-8545-5212>),
   Rolina van Gaalen [ctb]
 Repository: CRAN
-Date/Publication: 2019-07-08 16:40:07 UTC
+Date/Publication: 2020-05-29 10:00:07 UTC
