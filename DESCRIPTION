@@ -1,5 +1,5 @@
 Package: EpiEstim
-Version: 2.2-3
+Version: 2.2-4
 Title: Estimate Time Varying Reproduction Numbers from Epidemic Curves
 Authors@R: c(person("Anne", "Cori", email = "a.cori@imperial.ac.uk", role = c("aut", "cre"), comment = c(ORCID = "0000-0002-8443-9162")), 
   person("Simon", "Cauchemez", role = "ctb"),
@@ -21,6 +21,8 @@ Description: Tools to quantify transmissibility throughout
     an epidemic from the analysis of time series of incidence as described in
     Cori et al. (2013) <doi:10.1093/aje/kwt133> and Wallinga and Teunis (2004) 
     <doi:10.1093/aje/kwh255>.
+URL: https://github.com/mrc-ide/EpiEstim
+BugReports: https://github.com/mrc-ide/EpiEstim/issues
 Depends: R (>= 2.10)
 Imports: coarseDataTools (>= 0.6-4), stats, graphics, reshape2,
         ggplot2, gridExtra, fitdistrplus, coda, incidence (>= 1.7.0),
@@ -32,7 +34,7 @@ Encoding: UTF-8
 RoxygenNote: 7.0.2
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2020-05-28 16:30:03 UTC; acori
+Packaged: 2021-01-04 13:08:11 UTC; acori
 Author: Anne Cori [aut, cre] (<https://orcid.org/0000-0002-8443-9162>),
   Simon Cauchemez [ctb],
   Neil M. Ferguson [ctb] (<https://orcid.org/0000-0002-1154-8093>),
@@ -48,4 +50,4 @@ Author: Anne Cori [aut, cre] (<https://orcid.org/0000-0002-8443-9162>),
   Robin Thompson [ctb] (<https://orcid.org/0000-0001-8545-5212>),
   Rolina van Gaalen [ctb]
 Repository: CRAN
-Date/Publication: 2020-05-29 10:00:07 UTC
+Date/Publication: 2021-01-07 16:20:10 UTC
